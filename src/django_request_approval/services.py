@@ -16,14 +16,14 @@ class ApproverService(ABC):
 
     def get_approver(self) -> BaseApprover:
         user_group = self.approver.groups.all()
-        return self.approvers.filter(group__in=user_group).first()
+        return self.approvers.objects.filter(group__in=user_group).first()
     
     def get_requests(self):
         approver = self.get_approver()
         if not approver:
             raise PermissionDeniedException
         
-        return self.requests.filter(
+        return self.requests.objects.filter(
             request_status=RequestStatus.PENDING,
             approval_status=RequestStatus.PENDING,
             request_stage=approver.request_stage
@@ -34,7 +34,7 @@ class ApproverService(ABC):
         if not approver:
             raise PermissionDeniedException
         
-        return self.approvals.filter(request_stage=approver.request_stage)
+        return self.approvals.objects.filter(request_stage=approver.request_stage)
 
     
 class ApprovalService(ABC):
@@ -67,7 +67,7 @@ class ApprovalService(ABC):
 
     def get_next_stage(self):
         current_level = self.request.request_stage.level
-        return self.stages.filter(level__gt=current_level).first()
+        return self.stages.objects.filter(level__gt=current_level).first()
 
     def approve_request(self):
         if self.request.is_last_stage():
