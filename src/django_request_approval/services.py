@@ -7,23 +7,23 @@ from .models import ApprovalStatus, BaseApproval, BaseApprover, BaseRequest, Bas
 
 
 class ApproverService(ABC):
-    approvers: BaseApprover = None
-    requests: BaseRequest = None
-    approvals: BaseApproval = None
+    approver_model: BaseApprover = None
+    request_model: BaseRequest = None
+    approval_model: BaseApproval = None
   
     def __init__(self, approver: User) -> None:
         self.approver = approver
 
     def get_approver(self) -> BaseApprover:
         user_group = self.approver.groups.all()
-        return self.approvers.objects.filter(group__in=user_group).first()
+        return self.approver_model.objects.filter(group__in=user_group).first()
     
-    def get_requests(self):
+    def get_request_model(self):
         approver = self.get_approver()
         if not approver:
             raise PermissionDeniedException
         
-        return self.requests.objects.filter(
+        return self.request_model.objects.filter(
             request_status=RequestStatus.PENDING,
             approval_status=RequestStatus.PENDING,
             request_stage=approver.request_stage
@@ -34,14 +34,14 @@ class ApproverService(ABC):
         if not approver:
             raise PermissionDeniedException
         
-        return self.approvals.objects.filter(request_stage=approver.request_stage)
+        return self.approval_model.objects.filter(request_stage=approver.request_stage)
 
     
 class ApprovalService(ABC):
-    approvers: BaseApprover = None
-    requests: BaseRequest = None
-    approvals: BaseApproval = None
-    stages: BaseStage = None
+    approver_model: BaseApprover = None
+    request_model: BaseRequest = None
+    approval_model: BaseApproval = None
+    stage_model: BaseStage = None
 
     def __init__(self, approver: User, request: BaseRequest, decision: str, comment: str):
         self.approver = approver
@@ -56,7 +56,7 @@ class ApprovalService(ABC):
             return ApprovalStatus.REJECTED
         
     def create_approval(self):
-        approval = self.approvals
+        approval = self.approval_model
         approval.request = self.request
         approval.request_stage = self.request.request_stage
         approval.approver = self.approver
@@ -67,7 +67,7 @@ class ApprovalService(ABC):
 
     def get_next_stage(self):
         current_level = self.request.request_stage.level
-        return self.stages.objects.filter(level__gt=current_level).first()
+        return self.stage_model.objects.filter(level__gt=current_level).first()
 
     def approve_request(self):
         if self.request.is_last_stage():
@@ -106,4 +106,5 @@ class ApprovalService(ABC):
 
 
         
+
 
