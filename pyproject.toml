@@ -1,0 +1,28 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "django_request_approval"
+keywords = ["django approval",  "approval"]
+version = "0.0.1"
+
+dependencies = [
+  "django>4.0.0"
+]
+
+authors = [
+    {name="Brian Simpokolwe", email="briansimpokolwe@gmail.com"}
+]
+description = "Django Request Approval Process"
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3.10",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/briansimpo/django-request-approval"
+Issues = "https://github.com/briansimpo/django-request-approval/issues"
