@@ -18,7 +18,7 @@ class ApproverService(ABC):
         user_group = self.approver.groups.all()
         return self.approver_model.objects.filter(group__in=user_group).first()
     
-    def get_request_model(self):
+    def get_requests(self):
         approver = self.get_approver()
         if not approver:
             raise PermissionDeniedException
