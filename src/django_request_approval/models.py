@@ -5,6 +5,7 @@ from datetime import date
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import Group
+from model_utils.models import TimeStampedModel, UUIDModel, SoftDeletableModel
 
 
 class RequestStatus(models.TextChoices):
@@ -17,8 +18,7 @@ class ApprovalStatus(models.TextChoices):
     REJECTED = 'Rejected'
 
 
-class BaseStage(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
+class BaseStage(UUIDModel, TimeStampedModel, SoftDeletableModel):
     level = models.IntegerField()
     name = models.CharField(max_length=255)
 
@@ -41,8 +41,7 @@ class BaseStage(models.Model):
         return stage
 
 
-class BaseApprover(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
+class BaseApprover(UUIDModel, TimeStampedModel, SoftDeletableModel):
     request_stage = None
     group = models.ForeignKey(Group, related_name="+", on_delete=models.DO_NOTHING)
 
@@ -65,8 +64,7 @@ class BaseApprover(models.Model):
         return cls.objects.filter(group=group)
     
 
-class BaseRequest(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
+class BaseRequest(UUIDModel, TimeStampedModel, SoftDeletableModel):
     request_stage = None
     request_status = models.CharField(max_length=255,choices=RequestStatus.choices, default=RequestStatus.PENDING, blank=True, null=True)
     request_date = models.DateField(auto_now=True, blank=True, null=True)
@@ -109,8 +107,7 @@ class BaseRequest(models.Model):
         return self.approval_status==ApprovalStatus.REJECTED
    
 
-class BaseApproval(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
+class BaseApproval(UUIDModel, TimeStampedModel, SoftDeletableModel):
     request = None
     request_stage = None
     decision = models.CharField(max_length=255, choices=ApprovalStatus.choices)
