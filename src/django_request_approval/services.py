@@ -56,13 +56,13 @@ class ApprovalService(ABC):
             return ApprovalStatus.REJECTED
         
     def create_approval(self):
-        approval = self.approval_model
-        approval.request = self.request
-        approval.request_stage = self.request.request_stage
-        approval.approver = self.approver
-        approval.comment = self.comment
-        approval.decision = self.get_decision()
-        approval.save()
+        approval = self.approval_model.objects.create(
+            request=self.request,
+            request_stage=self.request.request_stage,
+            approver=self.approver,
+            comment=self.comment,
+            decision=self.get_decision()
+        )
         return approval
 
     def get_next_stage(self):
