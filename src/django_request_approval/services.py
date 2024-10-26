@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from django.contrib.auth.models import User
-from .exceptions import PermissionDeniedException
+from django.core.exceptions import PermissionDenied
 from .models import ApprovalStatus, BaseApproval, BaseApprover, BaseRequest, BaseStage, RequestStatus
 
 
@@ -21,7 +21,7 @@ class ApproverService(ABC):
     def get_requests(self):
         approver = self.get_approver()
         if not approver:
-            raise PermissionDeniedException
+            raise PermissionDenied
         
         return self.request_model.objects.filter(
             request_status=RequestStatus.PENDING,
@@ -32,7 +32,7 @@ class ApproverService(ABC):
     def get_history(self):
         approver = self.get_approver()
         if not approver:
-            raise PermissionDeniedException
+            raise PermissionDenied
         
         return self.approval_model.objects.filter(request_stage=approver.request_stage)
 

@@ -1,10 +1,10 @@
 
 from abc import abstractmethod
-import uuid
 from datetime import date
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import Group
+from django.http import Http404
 from model_utils.models import TimeStampedModel, UUIDModel, SoftDeletableModel
 
 
@@ -32,7 +32,7 @@ class BaseStage(UUIDModel, TimeStampedModel, SoftDeletableModel):
     def first_stage(cls):
         stage = cls.objects.get(level=1)
         if not stage:
-            raise Exception("Approval Stage Not Found")
+            raise Http404
         return stage
     
     @classmethod

@@ -1,14 +1,3 @@
-
-
 class RequestExistsException(Exception):
-    message = "Transfer request exists"
-
-    def __str__(self) -> str:
-        return self.message
+    pass
     
-
-class PermissionDeniedException(Exception):
-    message = "Permission denied"
-
-    def __str__(self) -> str:
-        return self.message
