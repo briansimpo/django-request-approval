@@ -112,7 +112,7 @@ class BaseApproval(UUIDModel, TimeStampedModel, SoftDeletableModel):
     request_stage = None
     decision = models.CharField(max_length=255, choices=ApprovalStatus.choices)
     comment = models.CharField(max_length=255, blank=True, null=True)
-    approver = models.OneToOneField(settings.AUTH_USER_MODEL, related_name="+", on_delete=models.CASCADE)
+    approver = models.OneToOneField(settings.AUTH_USER_MODEL, related_name="+", on_delete=models.DO_NOTHING)
     approval_date = models.DateField(auto_now=True)
 
     class Meta:
