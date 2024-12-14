@@ -1,11 +1,12 @@
 
 from abc import abstractmethod
 from datetime import date
-from django.db import models
+from django.db import IntegrityError, models
 from django.conf import settings
 from django.contrib.auth.models import Group
+from django.forms import ValidationError
 from django.http import Http404
-from model_utils.models import TimeStampedModel, UUIDModel, SoftDeletableModel
+from model_utils.models import TimeStampedModel, UUIDModel
 
 
 class RequestStatus(models.TextChoices):
@@ -18,7 +19,7 @@ class ApprovalStatus(models.TextChoices):
     REJECTED = 'Rejected'
 
 
-class BaseStage(UUIDModel, TimeStampedModel, SoftDeletableModel):
+class BaseStage(UUIDModel, TimeStampedModel):
     level = models.IntegerField()
     name = models.CharField(max_length=255)
 
@@ -32,16 +33,19 @@ class BaseStage(UUIDModel, TimeStampedModel, SoftDeletableModel):
     def first_stage(cls):
         stage = cls.objects.get(level=1)
         if not stage:
-            raise Http404
+            raise Http404("Approval stage is not found or configured")
         return stage
     
     @classmethod
     def last_stage(cls):
-        stage = cls.objects.order_by("-level").first()
-        return stage
+        if cls.objects.count() == 1:
+            return cls.objects.first()
+        else:
+            stage = cls.objects.order_by("-level").first()
+            return stage
 
 
-class BaseApprover(UUIDModel, TimeStampedModel, SoftDeletableModel):
+class BaseApprover(UUIDModel, TimeStampedModel):
     request_stage = None
     group = models.ForeignKey(Group, related_name="+", on_delete=models.DO_NOTHING)
 
@@ -50,6 +54,27 @@ class BaseApprover(UUIDModel, TimeStampedModel, SoftDeletableModel):
 
     def __str__(self) -> str:
         return self.group.name
+    
+    
+    def exists(self):
+        return self.__class__.objects.filter(group=self.group).exists()
+    
+    def _validation_message(self):
+        return "You cannot have the same group of users approving requests at multiple stages."
+    
+    def validate(self):
+        if self.exists():
+            raise IntegrityError(self._validation_message())
+
+    def clean(self):
+        if self.exists():
+            raise ValidationError({
+                "group": self._validation_message()
+            })
+    
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
     
     @classmethod
     def get_by_stage(cls, stage):
@@ -64,7 +89,7 @@ class BaseApprover(UUIDModel, TimeStampedModel, SoftDeletableModel):
         return cls.objects.filter(group=group)
     
 
-class BaseRequest(UUIDModel, TimeStampedModel, SoftDeletableModel):
+class BaseRequest(UUIDModel, TimeStampedModel):
     request_stage = None
     request_status = models.CharField(max_length=255,choices=RequestStatus.choices, default=RequestStatus.PENDING, blank=True, null=True)
     request_date = models.DateField(auto_now=True, blank=True, null=True)
@@ -107,7 +132,7 @@ class BaseRequest(UUIDModel, TimeStampedModel, SoftDeletableModel):
         return self.approval_status==ApprovalStatus.REJECTED
    
 
-class BaseApproval(UUIDModel, TimeStampedModel, SoftDeletableModel):
+class BaseApproval(UUIDModel, TimeStampedModel):
     request = None
     request_stage = None
     decision = models.CharField(max_length=255, choices=ApprovalStatus.choices)
